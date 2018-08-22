@@ -7,6 +7,12 @@ pipeline {
     }
 
     stages {
+        stage('Build') {
+            steps {
+                sh './gradlew installDist'
+            }
+        }
+
         stage('Create Docker Image') {
             steps {
                 sh 'docker build -t "$IMAGE" .'
