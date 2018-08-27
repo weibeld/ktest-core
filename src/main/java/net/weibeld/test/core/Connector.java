@@ -27,7 +27,7 @@ class Connector {
     }
 
     private void connect() {
-        logger.info("Starting connection establishment with AMQP server on " + amqpUri);
+        logger.info("Trying to connect to AMQP server on " + amqpUri);
         ConnectionFactory factory = configureFactory(amqpUri);
         connection = tryUntilConnect(factory);
         channel = createChannel(connection);
@@ -44,10 +44,11 @@ class Connector {
     }
 
     private Connection tryUntilConnect(ConnectionFactory factory) {
-        Connection connection;
+        Connection connection = null;
         int backoffSec = 1;
+        int maxTries = 60;
         int i = 1;
-        while (true) {
+        while (i <= maxTries) {
             try {
                 connection = factory.newConnection();
                 logger.info("Connection attempt " + i + " succeeded");
@@ -58,7 +59,10 @@ class Connector {
             }
             i++;
         }
-        return connection;
+        if (connection == null)
+            throw new RuntimeException("Connection attempts still failing after " + maxTries + " tries");
+        else
+            return connection;
     }
 
     private Channel createChannel(Connection connection) {
